@@ -4,69 +4,121 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router';
 import { Link } from "react-router-dom";
 
-export default function Form(){
+export default function Form( { pageNumber } ){
 
     const navigate = useNavigate();
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [passwordConfirm, setPasswordConfirm] = React.useState('');
-    const [username, setUsername] = React.useState('');
-    const [street, setStreet] = React.useState('');
-    const [number, setNumber] = React.useState('');
 
-    function resetFields(){
-        setEmail('');
-        setPassword('');
-        setPasswordConfirm('');
-        setUsername('');
-        setStreet('');
-        setNumber('');
-    }
-    async function login(e){
+    async function handleButtonSubmit(e){
+
         e.preventDefault();
-        try{
-            if(password === passwordConfirm){
-                const response = await axios.post('http://localhost:5000/sign-up', {
-                    email: email,
-                    password: password,
-                    username: username,
-                    street: street,
-                    number: parseInt(number)
+        if(pageNumber === 1){
+
+            let firstname = (document.querySelector("#firstname")).value;
+            localStorage.setItem('firstname', JSON.stringify(firstname));
+            let lastname = (document.querySelector("#lastname")).value;
+            localStorage.setItem('lastname', JSON.stringify(lastname));
+            let phone = (document.querySelector("#phone")).value;
+            localStorage.setItem('phone', JSON.stringify(phone));
+            navigate('/address');
+
+        }
+        else if(pageNumber === 2){
+
+            let street = (document.querySelector("#street")).value;
+            localStorage.setItem('street', JSON.stringify(street));
+            let number = (document.querySelector("#number")).value;
+            localStorage.setItem('number', JSON.stringify(number));
+            let zipCode = (document.querySelector("#zipCode")).value;
+            localStorage.setItem('zipCode', JSON.stringify(zipCode));
+            let city = (document.querySelector("#city")).value;
+            localStorage.setItem('city', JSON.stringify(city));
+            navigate('/payment');
+
+        }
+        else if(pageNumber === 3){
+
+            let owner = (document.querySelector("#owner")).value;
+            localStorage.setItem('owner', JSON.stringify(owner));
+            let iban = (document.querySelector("#iban")).value;
+            localStorage.setItem('iban', JSON.stringify(iban));
+            try{
+                const response = await axios.post('https://37f32cl571.execute-api.eu-central-1.amazonaws.com/default/wunderfleet-recruiting-backend-dev-save-payment-data', {
+                    costmerId: 1,
+                    iban: iban,
+                    owner: owner
                 });
+                alert(`Success! All your data have been saved. Your payment data id is ${response.data.paymentDataId}`)
+                localStorage.clear();
                 navigate('/');
             }
-            else{
-                alert('As senhas não são iguais');
-                resetFields();
+            catch(e){
+                alert("An error has occurred");
             }
+            navigate('/');
+
         }
-        catch(error){
-            if (error.response.status === 409) {
-                alert("Email já cadastrado! Tente novamente")
-            }
-            else {
-                alert("Erro no sistema! Tente novamente.")
-            }
-            resetFields();
+        
+    }
+    
+    function handleButtonCancel(){
+        navigate('/');
+    }
+
+    function InputsComponents(){
+        if(pageNumber === 1){
+            return(
+                <>
+                    <label htmlFor="firstname"><h4>Firstname</h4></label>
+                    <input required id="firstname" name="firstname" type="text" placeholder='Your firstname'/>
+                    <label htmlFor="lastname"><h4>Lastname</h4></label>
+                    <input required id="lastname" name="lastname" type="text" placeholder='Your lastname'/>
+                    <label htmlFor="phone"><h4>Phone Number</h4></label>
+                    <input required id="phone" name="phone" type="text" pattern="^([+])[\d\s*]+" placeholder='+49 173 1234 567 incl. country code'/>
+                </>
+            );
+        }
+
+        else if(pageNumber === 2){
+            return(
+                <>
+                    <label htmlFor="street"><h4>Street</h4></label>
+                    <input required id="street" name="street" type="text" placeholder='Your street'/>
+                    <label htmlFor="number"><h4>Number</h4></label>
+                    <input required id="number" name="number" type="number" placeholder='Your house number'/>
+                    <label htmlFor="zipCode"><h4>Zip code</h4></label>
+                    <input required id="zipCode" name="zipCode" type="text" placeholder='Your house zip code'/>
+                    <label htmlFor="city"><h4>City</h4></label>
+                    <input required id="city" name="city" type="text" placeholder='Your city'/>
+                </>
+            );
+        }
+
+        else if(pageNumber === 3){
+            return(
+                <>
+                    <label htmlFor="owner"><h4>Account owner</h4></label>
+                    <input required id="owner" name="owner" type="text" placeholder='Name'/>
+                    <label htmlFor="iban"><h4>IBAN</h4></label>
+                    <input required id="iban" name="iban" type="text" placeholder='IBAN'/>
+                </>
+            );
         }
     }
 
     return (
         
-        <LoginForm onSubmit = {login}>
-            <label for="firstname"><h4>Firstname</h4></label>
-            <input name="firstname" type="text" onChange = {(e) => setUsername(e.target.value)} value = {username} placeholder='Your firstname'/>
-            <input type="email" onChange = {(e) => setEmail(e.target.value)} value = {email} placeholder='E-mail'/>
-            <input type="text" onChange = {(e) => setStreet(e.target.value)} value = {street} placeholder='Rua'/>
-            <input type="number" onChange = {(e) => setNumber(e.target.value)} value = {number} placeholder='Número'/>
-            <input type="password" onChange = {(e) => setPassword(e.target.value)} value = {password} placeholder='Senha'/>
-            <input type="password" onChange = {(e) => setPasswordConfirm(e.target.value)} value = {passwordConfirm} placeholder='Confirme sua senha'/>
+        <LoginForm onSubmit={handleButtonSubmit}>
+            <InputsComponents />
             <Buttons>
-                <Button>
+                <Button onClick={handleButtonCancel}>
+                    <h3>Cancel</h3>
+                </Button>
+                <Button type="submit">
                     <h3>Next</h3>
                 </Button>
             </Buttons>
         </LoginForm>
+        
     );
 }
 
@@ -94,5 +146,5 @@ const Button = styled.button`
 const Buttons = styled.div`
     width: 100%;
     display: flex;
-    justify-content: end;
+    justify-content: space-between;
 `;
